@@ -29,11 +29,12 @@ jobs:
           sudo apt-get install -y google-chrome-stable
 
       - name: Run the screenshot script
-        # This line has been updated to use your script's name
+        # This line should match your script's name, e.g., bp_screencap.py
         run: python bp_screencap.py
 
       - name: Upload screenshot artifact
-        uses: actions/upload-artifact@v3
+        # This is the line that has been updated from v3 to v4
+        uses: actions/upload-artifact@v4
         with:
           name: bastille-post-screenshot
           path: ./*.png # Uploads any .png file from the root directory
