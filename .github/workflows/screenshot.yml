@@ -2,9 +2,8 @@ name: TEST - Website Screenshot and Upload to GDrive
 
 on:
   schedule:
-    # Runs every 10 minutes, between 2:00 PM and 3:00 PM HKT (which is 06:00 to 06:59 UTC).
     - cron: '*/10 6 * * *'
-  workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 jobs:
   capture-and-upload:
@@ -31,12 +30,13 @@ jobs:
       - name: Install Chinese Fonts
         run: sudo apt-get install -y fonts-noto-cjk
 
-      - name: Authenticate to Google Drive
-        # This line is corrected to use single quotes
-        run: echo '${{ secrets.GDRIVE_CREDENTIALS }}' > credentials.json
+      - name: Create Google Drive Token from Secret
+        # This step creates the token.json file for the script to use
+        run: echo '${{ secrets.GDRIVE_OAUTH_TOKEN }}' > token.json
 
       - name: Run script to capture and upload
         env:
+          # Make sure this is a folder ID from your personal "My Drive"
           GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
         run: python bp_screencap.py
 

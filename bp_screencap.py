@@ -5,28 +5,44 @@ from datetime import datetime
 import os
 import time
 import pytz
-# --- New imports for Google Drive ---
-from google.oauth2 import service_account
+# --- Imports for Google Drive OAuth 2.0 ---
+from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+
 
 def upload_to_gdrive(filename, folder_id):
-    """Uploads a file to a specific Google Drive folder."""
-    try:
-        SCOPES = ['https://www.googleapis.com/auth/drive']
-        SERVICE_ACCOUNT_FILE = 'credentials.json'
-
-        # Authenticate using the service account file
-        creds = service_account.Credentials.from_service_account_file(
-            SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+    """Uploads a file to a specific Google Drive folder using OAuth 2.0."""
+    SCOPES = ['https://www.googleapis.com/auth/drive.file']
+    
+    creds = None
+    
+    # The file token.json stores the user's access and refresh tokens.
+    if os.path.exists('token.json'):
+        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+    
+    # If there are no (valid) credentials available, let the user log in.
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            # Use client_secrets.json for the first-time authorization
+            flow = InstalledAppFlow.from_client_secrets_file(
+                'client_secrets.json', SCOPES)
+            creds = flow.run_local_server(port=0)
         
+        # Save the credentials for the next run
+        with open('token.json', 'w') as token:
+            token.write(creds.to_json())
+            
+    try:
         service = build('drive', 'v3', credentials=creds)
-
         file_metadata = {
             'name': os.path.basename(filename),
             'parents': [folder_id]
         }
-        
         media = MediaFileUpload(filename, mimetype='image/png')
         
         file = service.files().create(
@@ -37,9 +53,6 @@ def upload_to_gdrive(filename, folder_id):
         
         print(f"File '{filename}' uploaded successfully to Google Drive with File ID: {file.get('id')}")
 
-    except FileNotFoundError:
-        print(f"Error: The credentials file '{SERVICE_ACCOUNT_FILE}' was not found.")
-        print("Ensure the GDRIVE_CREDENTIALS secret is set up correctly in GitHub Actions.")
     except Exception as e:
         print(f"An error occurred during Google Drive upload: {e}")
 

@@ -1,2 +1,4 @@
 .png
 *.png
+client_secrets.json
+token.json
