@@ -32,7 +32,8 @@ jobs:
         run: sudo apt-get install -y fonts-noto-cjk
 
       - name: Authenticate to Google Drive
-        run: echo "${{ secrets.GDRIVE_CREDENTIALS }}" > credentials.json
+        # This line is corrected to use single quotes
+        run: echo '${{ secrets.GDRIVE_CREDENTIALS }}' > credentials.json
 
       - name: Run script to capture and upload
         env:
@@ -43,4 +44,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: bastille-post-screenshot
-          path: ./*.png # Uploads any .png file from the root directory
+          path: ./*.png
