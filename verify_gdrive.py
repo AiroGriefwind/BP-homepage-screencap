@@ -43,8 +43,8 @@ def check_for_todays_screenshot(folder_id, creds):
 
 def send_failure_notification(creds):
     """Sends an email alert using the Gmail API."""
-    colleague_email = os.getenv('COLLEAGUE_EMAIL')
-    sender_email = os.getenv('SENDER_EMAIL') # This should be your own gmail address
+    colleague_email = os.getenv('wangziyuan20188@gmail.com')
+    sender_email = os.getenv('bphk.documents@gmail.com') # This should be your own gmail address
 
     if not all([colleague_email, sender_email]):
         print("Error: Missing COLLEAGUE_EMAIL or SENDER_EMAIL environment variables.")
