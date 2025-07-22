@@ -1,3 +1,4 @@
+# bp_screencap.py
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -12,31 +13,8 @@ from googleapiclient.http import MediaFileUpload
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 
-
-def upload_to_gdrive(filename, folder_id):
+def upload_to_gdrive(filename, folder_id, creds):
     """Uploads a file to a specific Google Drive folder using OAuth 2.0."""
-    SCOPES = ['https://www.googleapis.com/auth/drive.file']
-    
-    creds = None
-    
-    # The file token.json stores the user's access and refresh tokens.
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-    
-    # If there are no (valid) credentials available, let the user log in.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            # Use client_secrets.json for the first-time authorization
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'client_secrets.json', SCOPES)
-            creds = flow.run_local_server(port=0)
-        
-        # Save the credentials for the next run
-        with open('token.json', 'w') as token:
-            token.write(creds.to_json())
-            
     try:
         service = build('drive', 'v3', credentials=creds)
         file_metadata = {
@@ -56,7 +34,7 @@ def upload_to_gdrive(filename, folder_id):
     except Exception as e:
         print(f"An error occurred during Google Drive upload: {e}")
 
-def capture_full_page_screenshot():
+def capture_full_page_screenshot(creds):
     hkt = pytz.timezone('Asia/Hong_Kong')
     hkt_now = datetime.now(hkt)
     timestamp = hkt_now.strftime("%Y-%m-%d_%H-%M-%S_HKT")
@@ -89,16 +67,38 @@ def capture_full_page_screenshot():
     finally:
         driver.quit()
 
-    # --- Call the upload function ---
     folder_id = os.getenv('GDRIVE_FOLDER_ID')
     if folder_id:
         if os.path.exists(filename):
             print("Attempting to upload screenshot to Google Drive...")
-            upload_to_gdrive(filename, folder_id)
+            upload_to_gdrive(filename, folder_id, creds)
         else:
             print(f"Error: Screenshot file '{filename}' not found for upload.")
     else:
         print("GDRIVE_FOLDER_ID environment variable not set. Skipping Google Drive upload.")
 
 if __name__ == "__main__":
-    capture_full_page_screenshot()
+    # Combined scopes for all actions (writing files and sending emails)
+    SCOPES = ['https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/gmail.send']
+    creds = None
+
+    if os.path.exists('token.json'):
+        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+    
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            # Check if scopes match, otherwise re-authenticate
+            if set(creds.scopes) != set(SCOPES):
+                creds = None 
+            else:
+                creds.refresh(Request())
+        
+        if not creds:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                'client_secrets.json', SCOPES)
+            creds = flow.run_local_server(port=0)
+        
+        with open('token.json', 'w') as token:
+            token.write(creds.to_json())
+
+    capture_full_page_screenshot(creds)

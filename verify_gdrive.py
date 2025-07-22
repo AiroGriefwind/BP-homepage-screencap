@@ -83,7 +83,7 @@ def send_failure_notification(creds):
 
 if __name__ == "__main__":
     # Add Gmail scope. drive.readonly is for checking, gmail.send is for alerting.
-    SCOPES = ['https://www.googleapis.com/auth/drive.readonly', 'https://www.googleapis.com/auth/gmail.send']
+    SCOPES = ['https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/gmail.send']
     creds = None
 
     # The file token.json stores the user's access and refresh tokens.
