@@ -21,12 +21,14 @@ def check_for_todays_screenshot(folder_id, creds):
         
         # Search for files created today in the specified folder
         query = f"'{folder_id}' in parents and name contains 'bastillepost_screenshot_{today_str}' and trashed=false"
-        
+        print("Query being used:", query)
+
         results = service.files().list(
             q=query,
             fields="files(id, name)",
             pageSize=1
         ).execute()
+        print("API drive().files().list() results:", results)
         
         items = results.get('files', [])
         
