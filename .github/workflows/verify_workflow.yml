@@ -28,6 +28,13 @@ jobs:
       - name: Ensure fresh Google token
         run: rm -f token.json
 
+      - name: Log Python date/time (UTC and HKT)
+        run: |
+          python -c "from datetime import datetime
+          import pytz
+          print('UTC:', datetime.utcnow())
+          print('HKT:', datetime.now(pytz.timezone('Asia/Hong_Kong')))"
+
       - name: Create Google Drive Token from Secret
         # This step uses your master token secret
         run: echo '${{ secrets.GDRIVE_OAUTH_TOKEN }}' > token.json
