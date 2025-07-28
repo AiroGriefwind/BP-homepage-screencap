@@ -19,25 +19,29 @@ def check_for_todays_screenshot(folder_id, creds):
         hkt = pytz.timezone('Asia/Hong_Kong')
         today_str = datetime.now(hkt).strftime('%Y-%m-%d')
         
-        # Search for files created today in the specified folder
-        query = f"'{folder_id}' in parents and name contains 'bastillepost_screenshot_{today_str}' and trashed=false"
-        print("Query being used:", query)
-
+        # List all files in the folder (not trashed)
+        query = f"'{folder_id}' in parents and trashed=false"
         results = service.files().list(
             q=query,
             fields="files(id, name)",
-            pageSize=1
+            pageSize=100  # Adjust if you expect many
         ).execute()
-        print("API drive().files().list() results:", results)
-        
-        items = results.get('files', [])
-        
+
+        today_prefix = f"bastillepost_screenshot_{today_str}"
+        items = [
+            f for f in results.get('files', [])
+            if f['name'].startswith(today_prefix)
+        ]
+
+        print("All found files:", results)
+        print("Filtered to today's screenshots:", items)
         if not items:
             print(f"Verification FAILED: No screenshot found for {today_str}.")
             return False, False # File not found
         else:
             print(f"Verification SUCCESS: Found screenshot for today: {items[0]['name']}")
             return True, False # File found
+
 
     except Exception as e:
         print(f"An error occurred while checking Google Drive: {e}")
