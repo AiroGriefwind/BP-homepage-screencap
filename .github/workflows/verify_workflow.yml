@@ -34,6 +34,9 @@ jobs:
           import pytz
           print('UTC:', datetime.utcnow())
           print('HKT:', datetime.now(pytz.timezone('Asia/Hong_Kong')))"
+          print("Query being used:", query)
+          print("API results:", results)
+
 
       - name: Create Google Drive Token from Secret
         # This step uses your master token secret
